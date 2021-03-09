@@ -71,4 +71,46 @@ router.post("/signup", async (req, res) => {
   });
 });
 
+router.post("/signin", async (req, res) => {
+  var userEmail = req.body.userEmail;
+  var userPwd = req.body.userPwd;
+  const query1 = "select * from users where u_email = '" + userEmail + "'";
+
+  res.setHeader('Content-Type', 'text/html');
+  await con.query(query1, (err, result, fields) => {
+    console.log(result[0].u_pwd, userPwd, "when user signin")
+    if (err) throw err;
+    if (result.length) {
+      bcrypt.compare(userPwd, result[0].u_pwd, function(err, isMatch) {
+        if (err) {
+          throw err
+        } else if (!isMatch) {
+          res.json({
+            flag: false,
+            data: "",
+            msg: "Email or Password is incorrect!"
+          })
+          res.send();
+        } else {
+          res.json({
+            flag: true,
+            data: result[0],
+            msg: "Login Success!"
+          })
+          res.send();
+        }
+      })
+      
+      
+    } else {
+      res.json({
+        flag: false,
+        data: "",
+        msg: "Email or Password is incorrect!"
+      })
+      res.send();
+    }
+  });
+});
+
 module.exports = router;
