@@ -1,4 +1,5 @@
 const express = require("express");
+var multer = require('multer');
 const router = express.Router();
 const bcrypt = require("bcryptjs")
 // mysql connection
@@ -14,7 +15,69 @@ const con = mysql.createConnection({
   database,
 });
 con.connect();
-const saltRounds = 10
+
+var storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'upload')
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + '-' +file.originalname )
+  }
+})
+var upload = multer({ storage: storage }).single('file')
+//====== Image upload
+router.post("/upload", async (req, res) => {
+  upload(req, res, function (err) {
+    if (err instanceof multer.MulterError) {
+        return res.status(500).json(err)
+    } else if (err) {
+        return res.status(500).json(err)
+    }
+  return res.status(200).send(req.file)
+  })
+})
+// ======= Update quiz
+
+router.post("/updatequiz", async (req, res) => {
+  console.log(req.body.id);
+  const query = "UPDATE `questions` SET `q_content`='"+req.body.data+"' WHERE `q_uid` = '"+req.body.id+"'";
+  await con.query(query, (err, result) => {
+    if(err) throw err;
+    res.json({
+      data: result,
+      message: 'success'
+    })
+  });
+});
+
+router.post("/getbyid", async (req, res) => {
+  console.log(req.body)
+  const query = "SELECT * FROM `questions` WHERE q_uid = '"+req.body.id+"'";
+  await con.query(query, (err, result, fields) => {
+    if(err) throw err;
+    console.log(result)
+    res.json({
+      data: result
+    })
+  })
+})
+
+//============ Insert new quiz
+router.post("/newquiz", async (req, res) => {
+  console.log(req.body);
+  const query = "INSERT INTO `questions` (`q_uid`, `q_name`, `q_description`, `q_content`) VALUES  ('" + req.body.uid + "', '" + req.body.title + "', '" + req.body.description + "', '"+req.body.content+"'); ";
+  await con.query(query, (err, result, fields) => {
+    if(err) throw err;
+    res.json({
+      flag: true,
+      data: {
+        uid: req.body.uid,
+      },
+      msg: "Contratulation! Create new Quiz is Success"
+    })
+    res.send();
+  });
+})
 
 // ================user sign up api
 router.post("/signup", async (req, res) => {
@@ -113,4 +176,96 @@ router.post("/signin", async (req, res) => {
   });
 });
 
+router.post("/getquizlist", async (req, res) => {
+  const query = "SELECT * FROM `questions`";
+  await con.query(query, (err, result, fields) => {
+    if(err) throw err;
+    res.json({
+      result,
+      msg: "fetch success"
+    })
+    res.send();
+  });
+});
+
+router.post("/getbyid", async (req, res) => {
+  console.log(req.body)
+  const query = "SELECT * FROM `questions` WHERE q_uid = '"+req.body.id+"'";
+  await con.query(query, (err, result, fields) => {
+    if(err) throw err;
+    console.log(result)
+    res.json({
+      data: result
+    })
+  })
+});
+
+// ===========  Collection functions
+
+router.post("/newcollection", async (req, res) => {
+  console.log(req.body);
+  const query = "INSERT INTO `collections` (`col_uid`, `col_name`, `col_description`, `col_image`, `col_quiz`) VALUES  ('" + req.body.uid + "', '" + req.body.title + "', '" + req.body.description + "', '"+req.body.cover+"', '" + req.body.quiz+ "'); ";
+  await con.query(query, (err, result, fields) => {
+    if(err) throw err;
+    res.json({
+      flag: true,
+      data: {
+        uid: req.body.uid,
+      },
+      msg: "Contratulation! Create new Quiz is Success"
+    })
+    res.send();
+  });
+});
+router.post("/getcollist", async (req, res) => {
+  const query = "SELECT * FROM `collections`";
+  await con.query(query, (err, result, fields) => {
+    if(err) throw err;
+    res.json({
+      result,
+      msg: "fetch success"
+    })
+    res.send();
+  });
+});
+
+router.post("/getcolbyid", async (req, res) => {
+  console.log(req.body)
+  const query = "SELECT * FROM `collections` WHERE col_uid = '"+req.body.id+"'";
+  await con.query(query, (err, result, fields) => {
+    if(err) throw err;
+    console.log(result)
+    res.json({
+      data: result
+    })
+  })
+});
+router.post("/updatecol", async (req, res) => {
+  console.log(req.body);
+  let addText = '';
+  if(req.body.cover===null || req.body.cover === ''){
+    addText = '';
+  } else {
+    addText = ", `col_image`= '"+ req.body.cover+"'";
+  }
+  const query = "UPDATE `collections` SET `col_name`='"+req.body.title+"', `col_description`='"+req.body.description+"'"+addText+" WHERE `col_uid` = '"+req.body.uid+"'";
+  await con.query(query, (err, result) => {
+    if(err) throw err;
+    res.json({
+      data: result,
+      message: 'success'
+    })
+  });
+});
+router.post("/updatequizlist", async (req, res) => {
+  console.log(req.body);
+  const query = "UPDATE `collections` SET `col_quiz`='"+req.body.quiz+"' WHERE `col_uid` = '"+req.body.uid+"'";
+  await con.query(query, (err, result) => {
+    if(err) throw err;
+    res.json({
+      data: result,
+      message: 'success'
+    })
+  });
+});
 module.exports = router;
