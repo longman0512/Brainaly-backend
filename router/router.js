@@ -4,7 +4,7 @@ const router = express.Router();
 const bcrypt = require("bcryptjs")
 // mysql connection
 const mysql = require('mysql');
-const host = '107.191.49.240:3306';
+const host = '107.191.49.240';
 const user = 'dnrnmnrerv';
 const password = 'xcDrRK4xDc';
 const database = 'dnrnmnrerv';
