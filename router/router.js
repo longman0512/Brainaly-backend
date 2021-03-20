@@ -4,10 +4,10 @@ const router = express.Router();
 const bcrypt = require("bcryptjs")
 // mysql connection
 const mysql = require('mysql');
-const host = 'localhost';
-const user = 'dbdcdhrnuz';
-const password = 'q2BefAXHvu';
-const database = 'dbdcdhrnuz';
+const host = '107.191.49.240:3306';
+const user = 'dnrnmnrerv';
+const password = 'xcDrRK4xDc';
+const database = 'dnrnmnrerv';
 const con = mysql.createConnection({
   host,
   user,
@@ -80,6 +80,7 @@ router.post("/newquiz", async (req, res) => {
 })
 
 // ================user sign up api
+const saltRounds = 10
 router.post("/signup", async (req, res) => {
   var userEmail = req.body.userEmail;
   var userName = req.body.userName;
