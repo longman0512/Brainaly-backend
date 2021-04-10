@@ -65,7 +65,7 @@ router.post("/getbyid", async (req, res) => {
 //============ Insert new quiz
 router.post("/newquiz", async (req, res) => {
   console.log(req.body);
-  const query = "INSERT INTO `questions` (`q_uid`, `q_name`, `q_description`, `q_content`) VALUES  ('" + req.body.uid + "', '" + req.body.title + "', '" + req.body.description + "', '"+req.body.content+"'); ";
+  const query = "INSERT INTO `questions` (`q_uid`, `q_name`, `q_description`, `q_content`, `q_cover`) VALUES  ('" + req.body.uid + "', '" + req.body.title + "', '" + req.body.description + "', '"+req.body.content+ "', '"+req.body.cover+"'); ";
   await con.query(query, (err, result, fields) => {
     if(err) throw err;
     res.json({
@@ -138,10 +138,9 @@ router.post("/signin", async (req, res) => {
   var userEmail = req.body.userEmail;
   var userPwd = req.body.userPwd;
   const query1 = "select * from users where u_email = '" + userEmail + "'";
-
   res.setHeader('Content-Type', 'text/html');
   await con.query(query1, (err, result, fields) => {
-    console.log(result[0].u_pwd, userPwd, "when user signin")
+    console.log(result[0].u_pwd, userPwd, "when user signin", result)
     if (err) throw err;
     if (result.length) {
       bcrypt.compare(userPwd, result[0].u_pwd, function(err, isMatch) {
@@ -159,7 +158,7 @@ router.post("/signin", async (req, res) => {
             flag: true,
             data: result[0],
             msg: "Login Success!"
-          })
+          });
           res.send();
         }
       })
@@ -260,6 +259,88 @@ router.post("/updatecol", async (req, res) => {
 router.post("/updatequizlist", async (req, res) => {
   console.log(req.body);
   const query = "UPDATE `collections` SET `col_quiz`='"+req.body.quiz+"' WHERE `col_uid` = '"+req.body.uid+"'";
+  await con.query(query, (err, result) => {
+    if(err) throw err;
+    res.json({
+      data: result,
+      message: 'success'
+    })
+  });
+});
+
+// Class
+router.post("/newclass", async (req, res) => {
+  console.log(req.body);
+  const query = "INSERT INTO `classes` (`cl_uid`, `cl_cover`, `cl_name`, `cl_description`, `cl_user_id`, `cl_students`) VALUES  ('" + req.body.uid + "', '" + req.body.cover + "', '" + req.body.title + "', '"+req.body.description+"', '" + req.body.userid+"', '" + req.body.students+ "'); ";
+  await con.query(query, (err, result, fields) => {
+    if(err) throw err;
+    res.json({
+      flag: true,
+      data: {
+        uid: req.body.uid,
+      },
+      msg: "Contratulation! Create new Quiz is Success"
+    })
+    res.send();
+  });
+});
+
+router.post("/getclasslist", async (req, res) => {
+  console.log(req.body)
+  const query = "SELECT * FROM `classes` WHERE cl_user_id = '"+req.body.userid+"'";
+  await con.query(query, (err, result, fields) => {
+    if(err) throw err;
+    console.log(result)
+    res.json({
+      result
+    })
+  })
+});
+router.post("/getclassbyid", async (req, res) => {
+  console.log(req.body)
+  const query = "SELECT * FROM `classes` WHERE cl_uid = '"+req.body.id+"'";
+  await con.query(query, (err, result, fields) => {
+    if(err) throw err;
+    console.log(result)
+    res.json({
+      data: result
+    })
+  })
+});
+router.post("/updateclass", async (req, res) => {
+  console.log(req.body);
+  let addText = '';
+  if(req.body.cover===null || req.body.cover === ''){
+    addText = '';
+  } else {
+    addText = ", `cl_cover`= '"+ req.body.cover+"'";
+  }
+  const query = "UPDATE `classes` SET `cl_name`='"+req.body.title+"', `cl_description`='"+req.body.description+"'"+ addText + " WHERE `cl_uid` = '"+req.body.uid+"'";
+  await con.query(query, (err, result) => {
+    if(err) throw err;
+    res.json({
+      data: result,
+      message: 'success'
+    })
+  });
+});
+router.post("/getstubyid", async (req, res) => {
+  console.log(req.body)
+  const query = "SELECT * FROM `users` WHERE u_id = '"+req.body.id+"'";
+  await con.query(query, (err, result, fields) => {
+    if(err) throw err;
+    console.log(result)
+    res.json({
+      data: result
+    })
+  })
+});
+
+//Profile
+
+router.post("/updateprofile", async (req, res) => {
+  const query = "UPDATE `users` SET `u_name` = '"+req.body.userName+"',  `u_birthday` = '"+req.body.user_birth+"',  `u_email` = '"+req.body.userEmail+"', `u_school` = '"+req.body.userSchool+"',  `u_avatar` = '"+req.body.userAvatar+"', `u_phonenumber` = '"+req.body.userPhone+"' WHERE `u_id` = "+req.body.userId;
+  console.log(query);
   await con.query(query, (err, result) => {
     if(err) throw err;
     res.json({
